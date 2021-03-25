@@ -14,6 +14,7 @@ const
 function PascalMurmurHash3(const [ref] HashData; Len, Seed: integer): integer;
 function MurmurHash3(const [ref] HashData; Len: integer; Seed: integer = 0)
  : integer;{$IFDEF purepascal}inline;{$ENDIF}
+function CMurmurHash3(const [ref] HashData; Len, Seed: integer): integer;
 /// FNV1a_Hash_Meiyan is about 30% faster than murmurhash3
 function FNV1A_Hash_Meiyan(const HashData; Len: integer; Seed: integer = DefaultHashSeed): integer;
 {$IFDEF purepascal}inline;{$ENDIF}
@@ -27,6 +28,12 @@ implementation
 
 uses
   System.Variants, System.Math, System.AnsiStrings, System.Generics.Defaults;
+
+{$L murmurhash32.obj}
+
+procedure _PMurHash32_Process(ph1, pcarry: PCardinal; key: pointer; len: integer); cdecl; external;
+function _PMurHash32(seed: cardinal; var key; len: integer): cardinal; cdecl; external;
+function _PMurHash32_Result(h, carry, total_length: cardinal): cardinal; cdecl; external;
 
 type
   PExtRec = ^TExtRec;
@@ -342,6 +349,15 @@ end;
 {$ENDREGION}
 {$ENDIF}
 {$POINTERMATH on}
+
+function CMurmurHash3(const [ref] HashData; Len, Seed: integer): integer;
+var
+  carry: cardinal;
+begin
+  carry := 0;
+  _PMurHash32_Process(@seed, @carry, HashData, Len);
+  Result := _PMurHash32_Result(seed, carry, Len);
+end;
 
 {$WARNINGS OFF}
 // Meiyan means Beauty, Charming Eyes or most precisely: SOULFUL EYES.
