@@ -1,0 +1,1 @@
+"C:\Program Files (x86)\Embarcadero\BCC102\bin\bcc32x.exe" -O -O3 -c murmurhash32.c
